@@ -1,0 +1,72 @@
+---
+title: Introducción a la API Andreani
+description: Información detallada sobre los diferentes endpoints disponibles en la API de Andreani
+---
+
+Esta documentación proporciona información detallada sobre los diferentes endpoints disponibles en la API de Andreani. Cada sección corresponde a un servicio específico y contiene la información necesaria para su implementación y uso.
+
+## Entornos
+
+La API de Andreani dispone de dos entornos:
+
+### Producción
+```
+https://apis.andreani.com
+```
+
+### Debug (Sandbox)
+```
+https://apisqa.andreani.com
+```
+
+### Consideraciones de los Entornos
+
+1. **Entorno de Debug (Sandbox)**
+   - Ideal para desarrollo y pruebas
+   - No genera órdenes reales
+   - Las credenciales son diferentes a las de producción
+   - Sin costo de envíos
+   - Permite probar todos los estados y eventos
+
+2. **Entorno de Producción**
+   - Para uso en ambiente productivo
+   - Genera órdenes reales
+   - Requiere credenciales de producción
+   - Los envíos generan costos reales
+   - Conectado con el sistema operativo real de Andreani
+
+## Autenticación
+
+Para utilizar las APIs de Andreani, necesitarás seguir estos pasos de autenticación:
+
+### Obtener Credenciales
+
+1. Para obtener las credenciales, deberás registrarte en el portal de desarrolladores de Andreani.
+2. Una vez registrado, obtendrás:
+   - Client ID
+   - Client Secret
+
+### Obtener Token de Acceso
+
+Para información detallada sobre cómo obtener un token de acceso, consulta la [documentación de autenticación](/docs/openapi/login).
+
+<Cards>
+  <Card title="Autenticación" href="/docs/openapi/login" />
+  <Card title="Sucursales" href="/docs/openapi/v2/sucursales" />
+  <Card title="Órdenes de Envío" href="/docs/openapi/v2/ordenes-de-envio" />
+  <Card title="Tracking" href="/docs/openapi/v2/envios/numeroandreani" />
+</Cards>
+
+## Versiones Disponibles
+
+A continuación se detallan las versiones disponibles de cada API:
+
+- Códigos de Barras y QR: v2.0, v2.0.1
+- Cotizador: v2.1.1
+- Localidades: v2.0.1
+- Multimedia: v2.0.1
+- Obtener Etiqueta: v2.0
+- Orden de Envío: v2.0
+- Órdenes T&D: v2.0
+- Sucursales: v2.0.2
+- Tracking: v2.0, v2.0.1, v2.0.2

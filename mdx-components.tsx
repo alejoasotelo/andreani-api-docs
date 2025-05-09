@@ -1,15 +1,25 @@
-import fs from 'fs';
-import path from 'path';
-import yaml from 'js-yaml';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
+import { File, Files, Folder } from 'fumadocs-ui/components/files';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 import type { MDXComponents } from 'mdx/types';
-import APIPage from './components/APIPage.server';
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+import * as icons from 'lucide-react';
 
-// use this function to get MDX components, you will need it for rendering MDX
+import { openapi } from '@/lib/source';
+import { APIPage } from 'fumadocs-openapi/ui';
+
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
   return {
+    ...(icons as unknown as MDXComponents),
     ...defaultMdxComponents,
-    APIPage,
+    File,
+    Files,
+    Folder,
+    Tabs,
+    Tab,
+    Accordion,
+    Accordions,
+    APIPage: (props) => <APIPage {...openapi.getAPIPageProps(props)} />,
     ...components,
   };
 }
