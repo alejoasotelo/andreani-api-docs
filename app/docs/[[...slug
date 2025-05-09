@@ -1,0 +1,18 @@
+import { notFound } from 'next/navigation';
+import { DocsPage } from 'fumadocs-ui/page';
+import { source } from '@/lib/source';
+
+export default async function Page({ params }: { params: { slug: string[] } }) {
+  const slug = params.slug.join('/');
+  const page = source.getPage(slug);
+
+  if (!page) notFound();
+
+  const MDXContent = page.data.body;
+
+  return (
+    <DocsPage toc={page.data.toc} full={page.data.full}>
+      <MDXContent />
+    </DocsPage>
+  );
+}

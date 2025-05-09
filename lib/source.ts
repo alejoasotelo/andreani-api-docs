@@ -21,6 +21,7 @@ const docs = {
           method,
           summary: operation.summary,
           description: operation.description,
+          body: operation.requestBody?.content['application/json']?.schema?.properties?.body, // Added body property
         };
       });
     }).flat();
