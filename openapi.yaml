@@ -1,0 +1,894 @@
+openapi: 3.0.0
+info:
+  title: API Andreani
+  description: |
+    API de Andreani para gestión de envíos, tracking, cotizaciones y más.
+    
+    Esta API permite:
+    * Gestionar órdenes de envío
+    * Realizar seguimiento de envíos
+    * Obtener cotizaciones
+    * Generar etiquetas
+    * Consultar sucursales y localidades
+    * Generar códigos de barras y QR
+  version: '2.0'
+  contact:
+    name: Soporte API Andreani
+    url: https://developers.andreani.com
+servers:
+  - url: https://apis.andreani.com
+    description: Servidor de Producción
+  - url: https://apisqa.andreani.com
+    description: Servidor de Debug (Sandbox)
+security:
+  - bearerAuth: []
+
+x-code-samples-languages:
+  - lang: curl
+    label: cURL
+    source: bash
+  - lang: php
+    label: PHP
+    source: php
+  - lang: python
+    label: Python
+    source: python
+  - lang: javascript
+    label: JavaScript
+    source: javascript
+  - lang: typescript
+    label: TypeScript
+    source: typescript
+  - lang: csharp
+    label: C#
+    source: csharp
+  - lang: java
+    label: Java
+    source: java
+  - lang: ruby
+    label: Ruby
+    source: ruby
+  - lang: go
+    label: Go
+    source: go
+
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+      description: |
+        Ingresa tu Client ID y Client Secret.
+        Se generará automáticamente el header Authorization: Basic {base64}.
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      properties:
+        codigo:
+          type: string
+          description: Código de error
+        mensaje:
+          type: string
+          description: Descripción del error
+    TokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Token JWT para autenticación
+        expiration:
+          type: string
+          format: date-time
+          description: Fecha y hora de expiración del token
+    Direccion:
+      type: object
+      properties:
+        calle:
+          type: string
+          description: Nombre de la calle
+        numero:
+          type: string
+          description: Número de la dirección
+        piso:
+          type: string
+          description: Piso (opcional)
+        departamento:
+          type: string
+          description: Departamento/Unidad (opcional)
+        localidad:
+          type: string
+          description: Nombre de la localidad
+        provincia:
+          type: string
+          description: Nombre de la provincia
+        codigoPostal:
+          type: string
+          description: Código postal
+    Contacto:
+      type: object
+      properties:
+        nombre:
+          type: string
+          description: Nombre completo del contacto
+        email:
+          type: string
+          format: email
+          description: Correo electrónico del contacto
+        telefono:
+          type: string
+          description: Número de teléfono del contacto
+    Bulto:
+      type: object
+      required:
+        - kilos
+        - valorDeclarado
+      properties:
+        kilos:
+          type: number
+          format: float
+          description: Peso en kilogramos
+        altoCm:
+          type: number
+          format: float
+          description: Alto en centímetros
+        anchoCm:
+          type: number
+          format: float
+          description: Ancho en centímetros
+        largoCm:
+          type: number
+          format: float
+          description: Largo en centímetros
+        volumen:
+          type: number
+          format: float
+          description: Volumen en cm³
+        valorDeclarado:
+          type: number
+          format: float
+          description: Valor declarado del contenido
+        referencias:
+          type: array
+          items:
+            type: object
+            properties:
+              referencia:
+                type: string
+              tipo:
+                type: string
+              valor:
+                type: string
+    CodigoBarrasRequest:
+      type: object
+      required:
+        - tipo
+        - contenido
+      properties:
+        tipo:
+          type: string
+          description: Tipo de código de barras
+        contenido:
+          type: string
+          description: Contenido a codificar
+        formato:
+          type: string
+          enum: [PNG, JPG]
+          default: PNG
+          description: Formato de la imagen
+
+    CodigoQRRequest:
+      type: object
+      required:
+        - contenido
+      properties:
+        contenido:
+          type: string
+          description: Contenido a codificar en el QR
+        nivelCorreccion:
+          type: string
+          enum: [L, M, Q, H]
+          default: L
+          description: Nivel de corrección de errores
+        formato:
+          type: string
+          enum: [PNG, JPG]
+          default: PNG
+          description: Formato de la imagen
+        tamanio:
+          type: integer
+          minimum: 100
+          maximum: 1000
+          default: 200
+          description: Tamaño en píxeles del código QR
+
+    ValidacionCodigoRequest:
+      type: object
+      required:
+        - tipo
+        - contenido
+      properties:
+        tipo:
+          type: string
+          enum: [BARRAS, QR]
+          description: Tipo de código a validar
+        contenido:
+          type: string
+          description: Contenido del código
+
+    Localidad:
+      type: object
+      properties:
+        id:
+          type: string
+        codigoPostal:
+          type: string
+        nombre:
+          type: string
+        provincia:
+          type: object
+          properties:
+            id:
+              type: string
+            nombre:
+              type: string
+
+    Sucursal:
+      type: object
+      properties:
+        id:
+          type: string
+        direccion:
+          $ref: '#/components/schemas/Direccion'
+        telefonos:
+          type: array
+          items:
+            type: string
+        email:
+          type: string
+          format: email
+        horarios:
+          type: object
+          properties:
+            lunesAViernes:
+              type: string
+            sabado:
+              type: string
+        latitud:
+          type: number
+          format: float
+        longitud:
+          type: number
+          format: float
+
+    ArchivoMultimedia:
+      type: object
+      properties:
+        id:
+          type: string
+        nombre:
+          type: string
+        tipo:
+          type: string
+        referencia:
+          type: string
+        url:
+          type: string
+        fechaCreacion:
+          type: string
+          format: date-time
+
+    OrdenDeEnvio:
+      type: object
+      required:
+        - contrato
+        - origen
+        - destino
+        - bultos
+      properties:
+        contrato:
+          type: string
+        origen:
+          type: object
+          properties:
+            sucursal:
+              type: string
+        destino:
+          type: object
+          required:
+            - direccion
+            - contacto
+          properties:
+            direccion:
+              $ref: '#/components/schemas/Direccion'
+            contacto:
+              $ref: '#/components/schemas/Contacto'
+        bultos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Bulto'
+
+    PuntoDeTercero:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID de la sucursal
+        codigo:
+          type: string
+          description: Código de la sucursal
+        numero:
+          type: string
+          description: ID de la sucursal no unificado
+        descripcion:
+          type: string
+          description: Nombre de la sucursal
+        canal:
+          type: string
+          enum: [B2C]
+          description: Canal de la sucursal
+        direccion:
+          type: object
+          properties:
+            calle:
+              type: string
+            numero:
+              type: string
+            provincia:
+              type: string
+            localidad:
+              type: string
+            region:
+              type: string
+            pais:
+              type: string
+            codigoPostal:
+              type: string
+        coordenadas:
+          type: object
+          properties:
+            latitud:
+              type: string
+            longitud:
+              type: string
+        horarioDeAtencion:
+          type: string
+        datosAdicionales:
+          type: object
+          properties:
+            seHaceAtencionAlCliente:
+              type: boolean
+            tipo:
+              type: string
+            admiteEnvios:
+              type: boolean
+            entregaEnvios:
+              type: boolean
+        telefonos:
+          type: array
+          items:
+            type: string
+        codigosPostalesAtendidos:
+          type: array
+          items:
+            type: string
+
+paths:
+  /login:
+    get:
+      tags:
+        - Autenticación
+      summary: Obtener token de autenticación
+      description: |
+        Obtiene un token JWT para autenticar las llamadas a la API.
+        El token debe incluirse en el header Authorization de todas las llamadas posteriores.
+        
+        Las credenciales deben enviarse usando Basic Auth.
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: Token generado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+          headers:
+            X-Authorization-Token:
+              description: Token JWT para usar en las siguientes llamadas
+              schema:
+                type: string
+        '401':
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/tarifas:
+    get:
+      tags:
+        - Cotizador
+      summary: Cotizar envío
+      description: Obtiene una cotización para un envío según sus características
+      parameters:
+        - name: cpDestino
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Código postal del destino
+        - name: contrato
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Número de contrato
+      responses:
+        '200':
+          description: Cotización exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tarifaConIva:
+                    type: number
+                    format: float
+                  tarifaSinIva:
+                    type: number
+                    format: float
+                  moneda:
+                    type: string
+                    enum: [ARS]
+                  plazoEntrega:
+                    type: object
+                    properties:
+                      minimo:
+                        type: integer
+                      maximo:
+                        type: integer
+
+  /v1/codigos-de-barras/{informacion}:
+    get:
+      tags:
+        - Códigos
+      summary: Generar código de barras
+      description: Genera un código de barras en formato 128b
+      parameters:
+        - name: informacion
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Información a codificar
+      responses:
+        '200':
+          description: Código de barras generado exitosamente
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+
+  /v1/codigos-qr/{informacion}:
+    get:
+      tags:
+        - Códigos
+      summary: Generar código QR
+      description: Genera un código QR estándar
+      parameters:
+        - name: informacion
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Información a codificar
+      responses:
+        '200':
+          description: Código QR generado exitosamente
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+
+  /v1/localidades:
+    get:
+      tags:
+        - Localidades
+      summary: Obtener todas las localidades
+      description: Lista todas las localidades o filtra por provincia/código postal
+      parameters:
+        - name: provincia
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filtrar por nombre de provincia
+        - name: codigoPostal
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filtrar por código postal
+      responses:
+        '200':
+          description: Lista de localidades
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Localidad'
+
+  /v2/sucursales:
+    get:
+      tags:
+        - Sucursales
+      summary: Obtener todas las sucursales
+      description: Lista todas las sucursales de Andreani con diversos filtros disponibles
+      parameters:
+        - name: codigo
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Permite filtrar según Código de la sucursal
+        - name: sucursal
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Permite buscar según nombre de la sucursal abreviado
+        - name: region
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Permite buscar según nombre de la región abreviado
+        - name: localidad
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Permite filtrar según nombre de la localidad
+        - name: codigoPostal
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Permite filtrar según código postal atendido por la sucursal deseada
+        - name: canal
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [B2B, B2C]
+          description: Permite filtrar según canal (B2C/B2B)
+        - name: seHaceAtencionAlCliente
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Permite filtrar las sucursales que cuentan con atención al cliente
+        - name: conBuzonInteligente
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Permite filtrar según las sucursales que cuentan con Buzón Inteligente
+        - name: numero
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Permite filtrar según ID de la sucursal no unificado (propiedad "id")
+      responses:
+        '200':
+          description: Lista de sucursales
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sucursal'
+        '400':
+          description: Parámetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/ordenes-de-envio:
+    post:
+      tags:
+        - Pre-envío
+      summary: Crear orden de envío
+      description: |
+        Crea una nueva orden de envío.
+        Soporta envíos B2C (hasta 50kg) y B2B/BIGGER (mayor a 50kg).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrdenDeEnvio'
+      responses:
+        '201':
+          description: Orden creada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  numeroEnvio:
+                    type: string
+                  estado:
+                    type: string
+                  etiquetas:
+                    type: array
+                    items:
+                      type: string
+                      format: uri
+
+  /v2/ordenes-de-envio/{numeroAndreani}:
+    get:
+      tags:
+        - Pre-envío
+      summary: Consultar estado de orden
+      description: | 
+        Obtiene el estado actual de una orden de envío.
+        Los estados posibles son: Pendiente, Solicitado, Creado, Rechazado
+      parameters:
+        - name: numeroAndreani
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Estado de la orden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  numeroEnvio:
+                    type: string
+                  estado:
+                    type: string
+
+  /v2/ordenes-de-envio/{numeroAndreani}/etiquetas:
+    get:
+      tags:
+        - Pre-envío
+      summary: Obtener etiquetas
+      description: Genera o regenera las etiquetas de un envío
+      parameters:
+        - name: numeroAndreani
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Etiquetas generadas
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+  /v2/envios/{numeroAndreani}:
+    get:
+      tags:
+        - Envío
+      summary: Consultar estado de envío
+      description: Obtiene el estado actual de un envío
+      parameters:
+        - name: numeroAndreani
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Estado del envío
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  estado:
+                    type: string
+                  etapa:
+                    type: string
+
+  /v1/envios/{numeroAndreani}/multimedia:
+    get:
+      tags:
+        - Envío
+      summary: Obtener documentos multimedia
+      description: Obtiene las constancias electrónicas y otros documentos digitalizados
+      parameters:
+        - name: numeroAndreani
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Documentos multimedia
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ArchivoMultimedia'
+
+  /v1/envios/{numeroAndreani}/remito:
+    get:
+      tags:
+        - Envío
+      summary: Obtener remito digitalizado
+      description: Obtiene el remito digitalizado de un envío
+      parameters:
+        - name: numeroAndreani
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Remito digitalizado
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+  /v2/envios/{numeroAndreani}/trazas:
+    get:
+      tags:
+        - Tracking
+      summary: Obtener trazas del envío
+      description: Obtiene todos los movimientos del envío
+      parameters:
+        - name: numeroAndreani
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Trazas del envío
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    fecha:
+                      type: string
+                      format: date-time
+                    estado:
+                      type: string
+                    motivo:
+                      type: string
+                    submotivo:
+                      type: string
+
+  /v2/puntos-de-tercero:
+    get:
+      tags:
+        - Puntos de Terceros
+      summary: Obtener puntos de entrega/admisión
+      description: |
+        Lista todas las sucursales de Andreani o PD3 asignadas al servicio.
+        Los PD3 son puntos de Andreani para entrega o admisión solo disponibles para canal B2C.
+      parameters:
+        - name: contrato
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Número de contrato
+        - name: admiteEnvios
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Permite filtrar según si la sucursal Admite Envíos o no
+        - name: entregaEnvios
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Permite filtrar según si la sucursal Entrega Envíos o no
+        - name: codigo
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Permite filtrar según Código de la sucursal
+        - name: sucursal
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Permite filtrar según nombre de la sucursal abreviado
+        - name: region
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Permite filtrar según nombre de la región abreviado
+        - name: localidad
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Permite filtrar según nombre de la localidad
+        - name: codigoPostal
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Permite filtrar según código postal atendido por la sucursal deseada
+        - name: canal
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [B2C]
+          description: Permite filtrar según canal (B2C)
+        - name: seHaceAtencionAlCliente
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Permite filtrar según si la sucursal hace atención al cliente o no
+        - name: conBuzonInteligente
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Permite filtrar según si la sucursal cuenta con Buzón Inteligente o no
+        - name: numero
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Permite filtrar según ID de la sucursal no unificado
+        - name: id
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Permite filtrar según ID de la sucursal
+        - name: atencionPorCodigoPostal
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Permite buscar sucursales propias y PD3 por código postal
+      responses:
+        '200':
+          description: Lista de puntos de terceros
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PuntoDeTercero'
+        '400':
+          description: Parámetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

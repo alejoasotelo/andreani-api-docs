@@ -1,0 +1,146 @@
+# Para cambiar entre ambientes:
+# 1. Presiona Ctrl+Alt+E (Cmd+Alt+E en macOS)
+# 2. Selecciona 'production' o 'qa'
+
+### Autenticación
+# @name login
+POST {{baseURL}}/login HTTP/1.1
+Content-Type: application/json
+x-authorization-token: Basic {{auth_credentials}}
+
+### Cotizador - Cotizar envío
+POST {{baseURL}}/v2/cotizador/cotizar HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+    "cpDestino": "1414",
+    "sucursalOrigen": "{{sucursalOrigen}}",
+    "bultos": [
+        {
+            "valorDeclarado": 1000,
+            "volumen": 1000,
+            "kilos": 1,
+            "altoCm": 10,
+            "anchoCm": 10,
+            "largoCm": 10
+        }
+    ],
+    "cliente": "{{cliente}}",
+    "contrato": "{{contrato}}"
+}
+
+### Localidades - Obtener todas
+GET {{baseURL}}/v2/localidades HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+
+### Localidades - Buscar por código postal
+GET {{baseURL}}/v2/localidades?codigoPostal=1414 HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+
+### Sucursales - Listar todas
+GET {{baseURL}}/v2/sucursales HTTP/1.1
+
+### Sucursales - Buscar por ID
+GET {{baseURL}}/v2/sucursales/{{sucursalId}} HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+
+### Tracking - Consultar envío
+GET {{baseURL}}/v2/tracking/envios/{{numeroEnvio}} HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+
+### Tracking - Consulta masiva
+POST {{baseURL}}/v2/tracking/envios HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+    "envios": ["{{numeroEnvio}}", "OTRO_NUMERO_ENVIO"]
+}
+
+### Órdenes de envío - Crear orden
+# @name crearOrden
+POST {{baseURL}}/v2/ordenes-de-envio HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+    "contrato": "{{contrato}}",
+    "origen": {
+        "sucursal": "{{sucursalOrigen}}"
+    },
+    "destino": {
+        "direccion": {
+            "calle": "Av. Ejemplo",
+            "numero": "123",
+            "piso": "4",
+            "departamento": "B",
+            "localidad": "Ciudad Autónoma de Buenos Aires",
+            "provincia": "Buenos Aires",
+            "codigoPostal": "1414"
+        },
+        "contacto": {
+            "nombre": "Juan Pérez",
+            "email": "juan@ejemplo.com",
+            "telefono": "1123456789"
+        }
+    },
+    "bultos": [
+        {
+            "kilos": 1,
+            "altoCm": 10,
+            "anchoCm": 10,
+            "largoCm": 10,
+            "volumen": 1000,
+            "valorDeclarado": 1000,
+            "referencias": [
+                {
+                    "referencia": "ORDEN_123",
+                    "tipo": "ORDEN_COMPRA",
+                    "valor": "123456"
+                }
+            ]
+        }
+    ]
+}
+
+### Obtener etiqueta de la orden creada
+GET {{baseURL}}/v2/etiquetas/envios/{{crearOrden.response.body.numeroEnvio}} HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+
+### Etiquetas - Obtener etiqueta en formato ZPL
+GET {{baseURL}}/v2/etiquetas/envios/{{numeroEnvio}}?formato=ZPL HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+
+### Códigos - Generar código de barras
+POST {{baseURL}}/v2/codigos/barras HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+    "tipo": "ENVIO",
+    "contenido": "{{numeroEnvio}}",
+    "formato": "PNG"
+}
+
+### Códigos - Generar código QR
+POST {{baseURL}}/v2/codigos/qr HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+    "contenido": "{{numeroEnvio}}",
+    "nivelCorreccion": "L",
+    "formato": "PNG",
+    "tamanio": 200
+}
+
+### Códigos - Validar código
+POST {{baseURL}}/v2/codigos/validar HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+    "tipo": "BARRAS",
+    "contenido": "{{numeroEnvio}}"
+}
