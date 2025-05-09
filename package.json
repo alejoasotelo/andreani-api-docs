@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "pnpm build:pre && next build",
+    "build": "npm build:pre && next build",
     "build:pre": "node ./scripts/pre-build.mjs",
     "dev": "next dev --turbo",
     "start": "next start",
