@@ -12,5 +12,5 @@ export const source = loader({
   },
 });
 export const openapi = createOpenAPI({
-  proxyUrl: 'https://proxy.soporte6135.workers.dev/',
+  proxyUrl: 'https://proxy.soporte6135.workers.dev/proxy',
 });
